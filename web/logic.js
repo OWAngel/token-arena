@@ -15,7 +15,7 @@ export function aggregate(data, {day, days=1, model='', search='', metric='total
   const start = shiftDay(day, 1-days), users = new Map(), models = new Map();
   for (const report of data.reports) {
     if (report.date < start || report.date > day) continue;
-    if (search && !`${report.wechat_name} ${report.github}`.toLowerCase().includes(search.toLowerCase())) continue;
+    if (search && !`${report.wechat_name} ${report.github||""}`.toLowerCase().includes(search.toLowerCase())) continue;
     const found = report.models.filter(m => !model || m.model === model);
     if (!found.length) continue;
     let user = users.get(report.id);
@@ -30,7 +30,7 @@ export function aggregate(data, {day, days=1, model='', search='', metric='total
       for (const key of ['total_tokens','input_tokens','output_tokens','cached_input_tokens']) { user[key]+=m[key]; um[key]+=m[key]; }
     }
   }
-  const ranking=[...users.values()].sort((a,b)=>b[metric]-a[metric] || a.github.localeCompare(b.github));
+  const ranking=[...users.values()].sort((a,b)=>b[metric]-a[metric] || String(a.github||a.id).localeCompare(String(b.github||b.id)));
   const totals=ranking.reduce((a,u)=>{for(const k of Object.keys(a))a[k]+=u[k];return a;},{total_tokens:0,input_tokens:0,output_tokens:0,cached_input_tokens:0});
   return {ranking,totals,models:[...models.values()].sort((a,b)=>b.total_tokens-a.total_tokens)};
 }

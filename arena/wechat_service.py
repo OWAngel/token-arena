@@ -53,15 +53,13 @@ def exchange_code(appid, secret, code):
         raise ApiError(502, "微信登录服务暂时不可用，请稍后重试") from None
 
 
-class WechatService:
+class UsageService:
+    """Shared usage ledger; authentication is supplied by each channel."""
     SESSION_SECONDS = 24 * 3600
     PAIR_SECONDS = 600
 
-    def __init__(self, db_path, appid, appsecret, identity_key, exchange=None, clock=time.time):
-        if not re.fullmatch(r"wx[0-9a-f]{16}", appid) or len(appsecret) < 16 or len(identity_key) < 32:
-            raise ValueError("Set the new AppID, server-only AppSecret and a stable 32+ character identity key")
-        self.appid, self.secret, self.identity_key = appid, appsecret, identity_key
-        self.exchange, self.clock = exchange or exchange_code, clock
+    def __init__(self, db_path, clock=time.time):
+        self.clock = clock
         self.lock = threading.RLock()
         self.db = sqlite3.connect(db_path, check_same_thread=False, isolation_level=None)
         self.db.row_factory = sqlite3.Row
@@ -104,9 +102,6 @@ class WechatService:
             else:
                 self.db.execute("COMMIT")
 
-    def user_id(self, openid):
-        return "wx_" + hmac.new(self.identity_key.encode(), (self.appid + ":" + openid).encode(), hashlib.sha256).hexdigest()[:32]
-
     def _authorize(self, token, scope="session"):
         if not isinstance(token, str) or not 32 <= len(token) <= 128:
             raise ApiError(401, "请重新登录或绑定设备")
@@ -124,16 +119,6 @@ class WechatService:
         return {"id": uid, "nickname": row["nickname"], "consent_public": bool(row["active"]), "device_count": devices}
 
     def dispatch(self, method, path, body, token=""):
-        if path == "/v1/wechat/login" and method == "POST":
-            code = text(body.get("code"), 512)
-            # Neither body.openid nor client-supplied user IDs are ever trusted.
-            openid = self.exchange(self.appid, self.secret, code)
-            uid, session = self.user_id(openid), secrets.token_urlsafe(32)
-            with self.transaction():
-                self.db.execute("DELETE FROM sessions WHERE expires<=?", (self.clock(),))
-                self.db.execute("INSERT OR IGNORE INTO users(id) VALUES(?)", (uid,))
-                self.db.execute("INSERT INTO sessions VALUES(?,?,?)", (digest(session), uid, self.clock() + self.SESSION_SECONDS))
-                return {"access_token": session, "expires_in": self.SESSION_SECONDS, "user": self._me(uid)}
         with self.transaction():
             if path == "/health" and method == "GET":
                 return {"ok": True, "service": "spark-arena-wechat", "version": 1}
@@ -203,14 +188,43 @@ class WechatService:
         self.db.execute("INSERT INTO reports(user_id,day,body,updated) VALUES(?,?,?,?) ON CONFLICT(user_id,day) DO UPDATE SET body=excluded.body,updated=excluded.updated", (uid, report["date"], serialized, self.clock()))
         return {"accepted": True, "date": report["date"], "total_tokens": sum(m["total_tokens"] for m in report["models"])}
 
+    @staticmethod
+    def identity(uid):
+        return "wechat-login" if uid.startswith("wx_") else "web-joined"
+
     def _board(self):
-        participants = [{"id": r["id"], "wechat_name": r["nickname"], "identity": "wechat-login"}
+        participants = [{"id": r["id"], "wechat_name": r["nickname"], "identity": self.identity(r["id"])}
                         for r in self.db.execute("SELECT id,nickname FROM users WHERE active=1 ORDER BY id")]
         reports = []
         for r in self.db.execute("SELECT r.*,u.nickname FROM reports r JOIN users u ON u.id=r.user_id WHERE u.active=1 AND r.withdrawn=0 ORDER BY r.day,r.user_id"):
             report = json.loads(r["body"])
-            reports.append({**report, "id": r["user_id"], "wechat_name": r["nickname"], "identity": "wechat-login"})
+            reports.append({**report, "id": r["user_id"], "wechat_name": r["nickname"], "identity": self.identity(r["user_id"])})
         return {"version": 1, "timezone": "Asia/Shanghai", "generated_at": dt.datetime.fromtimestamp(self.clock(), dt.timezone.utc).isoformat(), "participants": participants, "reports": reports}
+
+
+class WechatService(UsageService):
+    def __init__(self, db_path, appid, appsecret, identity_key, exchange=None, clock=time.time):
+        if not re.fullmatch(r"wx[0-9a-f]{16}", appid) or len(appsecret) < 16 or len(identity_key) < 32:
+            raise ValueError("Set the new AppID, server-only AppSecret and a stable 32+ character identity key")
+        self.appid, self.secret, self.identity_key = appid, appsecret, identity_key
+        self.exchange = exchange or exchange_code
+        super().__init__(db_path, clock)
+
+    def user_id(self, openid):
+        return "wx_" + hmac.new(self.identity_key.encode(), (self.appid + ":" + openid).encode(), hashlib.sha256).hexdigest()[:32]
+
+    def dispatch(self, method, path, body, token=""):
+        if path == "/v1/wechat/login" and method == "POST":
+            code = text(body.get("code"), 512)
+            # Neither body.openid nor client-supplied user IDs are ever trusted.
+            openid = self.exchange(self.appid, self.secret, code)
+            uid, session = self.user_id(openid), secrets.token_urlsafe(32)
+            with self.transaction():
+                self.db.execute("DELETE FROM sessions WHERE expires<=?", (self.clock(),))
+                self.db.execute("INSERT OR IGNORE INTO users(id) VALUES(?)", (uid,))
+                self.db.execute("INSERT INTO sessions VALUES(?,?,?)", (digest(session), uid, self.clock() + self.SESSION_SECONDS))
+                return {"access_token": session, "expires_in": self.SESSION_SECONDS, "user": self._me(uid)}
+        return super().dispatch(method, path, body, token)
 
 
 class WechatApplication:
