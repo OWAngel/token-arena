@@ -31,9 +31,9 @@ test('retained mini program refresh recalculates yesterday across midnight',asyn
  await page.onShow();assert.equal(page.data.day,'2026-10-19');
  day='2026-10-20';await page.refresh();assert.equal(page.data.day,'2026-10-20');assert.equal(page.data.people,1);
 });
-test('independent project ships no real AppID or production backend by default',()=>{
+test('independent project has a public AppID but signup stays disabled without an API',()=>{
  const config=JSON.parse(fs.readFileSync(new URL('../miniprogram/project.config.json',import.meta.url)));
- assert.equal(config.appid,'touristappid');assert.equal(require('../miniprogram/config.js').API_BASE,'');
+ assert.match(config.appid,/^wx[0-9a-f]{16}$/);assert.equal(require('../miniprogram/config.js').API_BASE,'');
  const app=JSON.parse(fs.readFileSync(new URL('../miniprogram/app.json',import.meta.url)));
  for(const page of app.pages)for(const suffix of ['.js','.json','.wxml','.wxss'])assert.ok(fs.existsSync(new URL('../miniprogram/'+page+suffix,import.meta.url)));
 });
@@ -46,4 +46,28 @@ test('mini program shows a server-validated user after code login, never sends s
  vm.runInNewContext(fs.readFileSync(new URL('../miniprogram/lib/api.js',import.meta.url),'utf8'),context);
  const user=await context.module.exports.login();assert.equal(user.id,'wx_server');assert.equal(loginPayload.code,'temporary-code');assert.equal(loginPayload.openid,undefined);
  assert.equal(store.get('sparkArenaSession'),'synthetic-session');
+});
+
+test('native visibility directives bind expressions instead of truthy literal strings',()=>{
+ const app=JSON.parse(fs.readFileSync(new URL('../miniprogram/app.json',import.meta.url)));
+ let count=0;
+ for(const page of app.pages){
+   const wxml=fs.readFileSync(new URL('../miniprogram/'+page+'.wxml',import.meta.url),'utf8');
+   for(const directive of wxml.matchAll(/wx:(?:if|elif)="([^"]*)"/g)){
+     count++;assert.match(directive[1],/^\{\{[\s\S]+\}\}$/);
+   }
+ }
+ assert.ok(count>0);
+});
+
+test('failed public snapshot keeps browse-only notice and stops loading',async()=>{
+ let page;
+ const context={Page:p=>{page=p;},require:name=>name.includes('/board')?logic:{},
+   getApp:()=>({globalData:{apiBase:'',publicBoardUrl:'https://example.test/data.json'}}),
+   wx:{request:o=>o.fail()},Promise,Error,Map,Set};
+ vm.runInNewContext(fs.readFileSync(new URL('../miniprogram/pages/board/index.js',import.meta.url),'utf8'),context);
+ page.setData=values=>Object.assign(page.data,values);
+ await page.refresh();
+ assert.equal(page.data.browseOnly,true);assert.equal(page.data.loading,false);
+ assert.match(page.data.error,/合法域名/);assert.equal(page.data.rows.length,0);
 });

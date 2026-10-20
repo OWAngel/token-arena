@@ -6,9 +6,9 @@ Page({
   onPullDownRefresh(){this.refresh().finally(()=>wx.stopPullDownRefresh());},
   onShareAppMessage(){return {title:'Spark Arena · 自愿分享你的 Spark 用量',path:'/pages/board/index'};},
   refresh(){
-    this.setData({loading:true,error:'',day:logic.yesterday()});
     const app=getApp(),live=!!app.globalData.apiBase;
-    const load=live?api.request('/v1/board'):new Promise((resolve,reject)=>wx.request({url:app.globalData.publicBoardUrl,timeout:20000,success:r=>r.statusCode===200?resolve(r.data):reject(new Error('公开榜单暂时无法读取。')),fail:()=>reject(new Error('网络暂时不可用。'))}));
+    this.setData({loading:true,error:'',day:logic.yesterday(),browseOnly:!live});
+    const load=live?api.request('/v1/board'):new Promise((resolve,reject)=>wx.request({url:app.globalData.publicBoardUrl,timeout:20000,success:r=>r.statusCode===200?resolve(r.data):reject(new Error('公开榜单暂时无法读取。')),fail:()=>reject(new Error('无法读取榜单，请检查网络及微信 request 合法域名配置。'))}));
     return load.then(data=>{
       if(!data||!Array.isArray(data.reports))throw new Error('榜单数据暂时不可用。');
       this.board=data;

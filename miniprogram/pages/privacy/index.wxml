@@ -3,5 +3,5 @@
 <view class="card"><view class="section-title">只上传最小汇总</view><view class="muted">在你自愿参加并绑定设备后，本地上报器只上传日期、模型、输入、输出、缓存 Token 和覆盖标记。不上传 sparkDash 地址、访问令牌、节点、硬件、提示词、会话内容或完整原始响应。</view></view>
 <view class="card"><view class="section-title">分享的是实例整体</view><view class="muted">连接前须确认你有权公开这个实例的整体统计。共享实例的用量不能解释为某个自然人的个人消耗。计数可能因监控中断而缺失；缓存包含在输入里，不重复相加。</view></view>
 <view class="card"><view class="section-title">授权可以撤销</view><view class="muted">在“我的 Spark”中撤销设备会停止后续上报；退出公开榜单会隐藏自己的微信榜单历史并撤销设备。公开信息可能已被他人复制，无法保证删除所有副本。微信版和 GitHub 网页版是两个独立报名渠道，退出微信榜单不会关闭原先自愿发布的 GitHub Issue。</view></view>
-<view class="card"><view class="section-title">正式上线前</view><view class="muted">运营者将公布正式主体、联系方式及完整隐私保护指引。当前开发版本尚未完成新账号注册与上线，不接受真实微信报名或设备绑定。</view></view>
+<view class="card"><view class="section-title">正式上线前</view><view class="muted">运营者将公布正式主体、联系方式及完整隐私保护指引。当前开发版本已配置独立 AppID，尚未完成真实登录联调与上线，不接受真实微信报名或设备绑定。</view></view>
 </view>

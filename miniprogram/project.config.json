@@ -1,6 +1,6 @@
 {
-  "description": "Spark Arena 独立微信小程序；注册新 AppID 后替换 touristappid",
-  "appid": "touristappid",
+  "description": "Spark Arena 独立微信小程序；微信登录和上线联调进行中",
+  "appid": "wx48f0bffa783c8e1d",
   "projectname": "spark-arena",
   "compileType": "miniprogram",
   "miniprogramRoot": "./",

@@ -1,13 +1,13 @@
 <view class="page">
   <view class="brand"><text class="bolt">ϟ</text><text>spark<text class="light">arena</text></text><button size="mini" bindtap="me">我的 Spark ↗</button></view>
   <view class="eyebrow">LOCAL POWER, SHARED.</view><view class="title">每一颗 Spark，都有自己的火力。</view>
-  <view class="message" wx:if="browseOnly">微信版报名尚未开放，当前展示网页社区的公开榜单；网页账号不代表已绑定微信。</view>
+  <view class="message" wx:if="{{browseOnly}}">微信版报名尚未开放，当前展示网页社区的公开榜单；网页账号不代表已绑定微信。</view>
   <view class="stats"><view><text class="label">总 TOKEN</text><text class="value mono">{{totalText}}</text><text class="small muted">输入 + 输出</text></view><view><text class="label">已生成</text><text class="value mono">{{outputText}}</text><text class="small muted">{{people}} 人 · {{modelCount}} 个模型</text></view></view>
   <view class="filters"><view class="periods"><button wx:for="{{periods}}" wx:key="*this" data-days="{{item}}" bindtap="period" class="{{days===item?'selected':''}}">{{item===1?'日榜':item+'天'}}</button></view><picker range="{{models}}" value="{{modelIndex}}" bindchange="model"><view class="model-picker">{{models[modelIndex]}} ▾</view></picker></view>
   <view class="muted small">截至 {{day}} · 北京时间自然日</view>
-  <view class="error" wx:if="error">{{error}}<button size="mini" bindtap="refresh">重试</button></view>
-  <view class="muted" wx:if="loading">正在读取榜单…</view>
-  <view wx:for="{{rows}}" wx:key="id" class="person-card"><view class="person" data-id="{{item.id}}" bindtap="detail"><text class="rank">{{item.rank}}</text><view class="person-name"><text class="name">{{item.name}}</text><text class="identity">{{item.identity}} · {{item.model}}</text></view><text class="amount mono">{{item.totalText}}</text><text>⌄</text></view><view class="details" wx:if="expanded===item.id"><view class="muted small">已报 {{item.reportedDays}} / {{days}} 天 · {{item.partial?'含覆盖不足日期 · ':''}}缓存命中 {{item.cacheRate}}</view><view wx:for="{{item.models}}" wx:for-item="model" wx:key="model" class="model-detail"><text>{{model.model}}</text><text class="muted small">输入 {{model.inputText}} · 输出 {{model.outputText}}</text></view></view></view>
-  <view class="empty" wx:if="!rows.length&&!loading&&!error"><text class="bolt">ϟ</text><view>第一颗 Spark，等你点亮。</view><button class="primary" bindtap="me">自愿参加 ↗</button></view>
+  <view class="error" wx:if="{{error}}">{{error}}<button size="mini" bindtap="refresh">重试</button></view>
+  <view class="muted" wx:if="{{loading}}">正在读取榜单…</view>
+  <view wx:for="{{rows}}" wx:key="id" class="person-card"><view class="person" data-id="{{item.id}}" bindtap="detail"><text class="rank">{{item.rank}}</text><view class="person-name"><text class="name">{{item.name}}</text><text class="identity">{{item.identity}} · {{item.model}}</text></view><text class="amount mono">{{item.totalText}}</text><text>⌄</text></view><view class="details" wx:if="{{expanded===item.id}}"><view class="muted small">已报 {{item.reportedDays}} / {{days}} 天 · {{item.partial?'含覆盖不足日期 · ':''}}缓存命中 {{item.cacheRate}}</view><view wx:for="{{item.models}}" wx:for-item="model" wx:key="model" class="model-detail"><text>{{model.model}}</text><text class="muted small">输入 {{model.inputText}} · 输出 {{model.outputText}}</text></view></view></view>
+  <view class="empty" wx:if="{{!rows.length&&!loading&&!error}}"><text class="bolt">ϟ</text><view>第一颗 Spark，等你点亮。</view><button class="primary" bindtap="me">自愿参加 ↗</button></view>
   <view class="foot"><view>只分享昵称和模型汇总。用量是足迹，不是能力评分。</view><view>连接的是实例整体，监控缺失可能少计。</view></view>
 </view>
