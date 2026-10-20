@@ -36,7 +36,7 @@ python3 -m arena.client run            # 首次上报
 python3 -m arena.client install-schedule
 ```
 
-也可以在网站右上角点「连接我的 sparkDash」，生成适合自己的命令。GitHub 登录是报名身份，不需要给其他参加者仓库写权限。
+也可以在网站右上角点「连接我的 sparkDash」，填写昵称和地址即可生成加入命令，无需额外勾选。执行命令才会报名，仅打开页面或填写不会加入。GitHub 登录是报名身份，不需要给其他参加者仓库写权限。
 
 `connect` 会先测试私有连接和小时历史接口，再创建公开报名 Issue。不会自动把这台电脑的其他 AI 工具或其他设备加入。它只读取 sparkDash 的 GET 接口；不会清空计数、修改配置或控制模型。
 

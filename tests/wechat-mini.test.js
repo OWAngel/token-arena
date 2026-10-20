@@ -31,9 +31,10 @@ test('retained mini program refresh recalculates yesterday across midnight',asyn
  await page.onShow();assert.equal(page.data.day,'2026-10-19');
  day='2026-10-20';await page.refresh();assert.equal(page.data.day,'2026-10-20');assert.equal(page.data.people,1);
 });
-test('independent project has a public AppID but signup stays disabled without an API',()=>{
+test('independent project enables only login testing while public signup stays closed',()=>{
  const config=JSON.parse(fs.readFileSync(new URL('../miniprogram/project.config.json',import.meta.url)));
- assert.match(config.appid,/^wx[0-9a-f]{16}$/);assert.equal(require('../miniprogram/config.js').API_BASE,'');
+ assert.match(config.appid,/^wx[0-9a-f]{16}$/);
+ const build=require('../miniprogram/config.js');assert.equal(new URL(build.API_BASE).protocol,'https:');assert.equal(build.ENROLLMENT_OPEN,false);
  const app=JSON.parse(fs.readFileSync(new URL('../miniprogram/app.json',import.meta.url)));
  for(const page of app.pages)for(const suffix of ['.js','.json','.wxml','.wxss'])assert.ok(fs.existsSync(new URL('../miniprogram/'+page+suffix,import.meta.url)));
 });
@@ -70,4 +71,39 @@ test('failed public snapshot keeps browse-only notice and stops loading',async()
  await page.refresh();
  assert.equal(page.data.browseOnly,true);assert.equal(page.data.loading,false);
  assert.match(page.data.error,/合法域名/);assert.equal(page.data.rows.length,0);
+});
+
+test('login-only stage refuses enrollment and pairing before making requests',async()=>{
+ let page,calls=0;
+ const context={Page:p=>{page=p;},require:()=>({request:()=>{calls++;throw new Error('must not call');}}),
+   getApp:()=>({globalData:{apiBase:'https://example.test',enrollmentOpen:false}}),wx:{},Promise,Error,Date};
+ vm.runInNewContext(fs.readFileSync(new URL('../miniprogram/pages/me/index.js',import.meta.url),'utf8'),context);
+ page.setData=values=>Object.assign(page.data,values);page.onLoad();
+ assert.equal(page.data.configured,true);assert.equal(page.data.enrollmentOpen,false);
+ page.data.nickname='fixture';
+ await page.enroll();assert.match(page.data.error,/报名尚未开放/);
+ await page.pair();assert.match(page.data.error,/绑定尚未开放/);assert.equal(calls,0);
+});
+
+test('live board keeps signup-closed notice during login-only stage',async()=>{
+ let page;
+ const context={Page:p=>{page=p;},require:name=>name.includes('/board')?logic:{request:async()=>({reports:[]})},
+   getApp:()=>({globalData:{apiBase:'https://example.test',enrollmentOpen:false}}),wx:{},Promise,Error,Map,Set};
+ vm.runInNewContext(fs.readFileSync(new URL('../miniprogram/pages/board/index.js',import.meta.url),'utf8'),context);
+ page.setData=values=>Object.assign(page.data,values);await page.refresh();
+ assert.equal(page.data.browseOnly,true);assert.equal(page.data.loading,false);assert.equal(page.data.error,'');
+});
+
+
+test('join button enrolls a filled nickname without a separate consent checkbox',async()=>{
+ let page,calls=[];
+ const context={Page:p=>{page=p;},require:()=>({request:async(...args)=>{calls.push(args);return {nickname:'fixture',consent_public:true};}}),
+   getApp:()=>({globalData:{apiBase:'https://example.test',enrollmentOpen:true}}),wx:{},Promise,Error,Date};
+ vm.runInNewContext(fs.readFileSync(new URL('../miniprogram/pages/me/index.js',import.meta.url),'utf8'),context);
+ page.setData=values=>Object.assign(page.data,values);page.onLoad();
+ assert.equal(calls.length,0);
+ await page.enroll();assert.match(page.data.error,/填写展示昵称/);assert.equal(calls.length,0);
+ page.nickname({detail:{value:' fixture '}});assert.equal(calls.length,0);
+ await page.enroll();assert.equal(calls.length,1);assert.equal(calls[0][0],'/v1/profile');
+ assert.equal(calls[0][1],'PUT');assert.equal(calls[0][2].nickname,'fixture');assert.equal(calls[0][2].consent_public,true);
 });
