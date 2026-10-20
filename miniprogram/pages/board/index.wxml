@@ -1,7 +1,7 @@
 <view class="page">
   <view class="brand"><text class="bolt">ϟ</text><text>spark<text class="light">arena</text></text><button size="mini" bindtap="me">我的 Spark ↗</button></view>
   <view class="eyebrow">LOCAL POWER, SHARED.</view><view class="title">每一颗 Spark，都有自己的火力。</view>
-  <view class="message" wx:if="{{browseOnly}}">微信版报名尚未开放，当前展示网页社区的公开榜单；网页账号不代表已绑定微信。</view>
+  <view class="message" wx:if="{{browseOnly}}">微信版报名尚未开放，当前仅供浏览公开榜单；账号身份以记录中的标注为准。</view>
   <view class="stats"><view><text class="label">总 TOKEN</text><text class="value mono">{{totalText}}</text><text class="small muted">输入 + 输出</text></view><view><text class="label">已生成</text><text class="value mono">{{outputText}}</text><text class="small muted">{{people}} 人 · {{modelCount}} 个模型</text></view></view>
   <view class="filters"><view class="periods"><button wx:for="{{periods}}" wx:key="*this" data-days="{{item}}" bindtap="period" class="{{days===item?'selected':''}}">{{item===1?'日榜':item+'天'}}</button></view><picker range="{{models}}" value="{{modelIndex}}" bindchange="model"><view class="model-picker">{{models[modelIndex]}} ▾</view></picker></view>
   <view class="muted small">截至 {{day}} · 北京时间自然日</view>

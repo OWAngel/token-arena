@@ -1,0 +1,40 @@
+# Read-only HTTPS staging. Login, enrollment and upload routes stay closed.
+# Replace arena.example.com after configuring a separate DNS record/certificate.
+limit_req_zone $binary_remote_addr zone=spark_arena_preview:10m rate=2r/s;
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name arena.example.com;
+    location ^~ /.well-known/acme-challenge/ { root /var/www/spark-arena-acme; }
+    location / { return 301 https://$host$request_uri; }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name arena.example.com;
+    ssl_certificate /etc/letsencrypt/live/spark-arena/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/spark-arena/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    access_log off;
+    client_max_body_size 64k;
+    client_body_timeout 10s;
+    limit_req zone=spark_arena_preview burst=20 nodelay;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For "";
+    proxy_connect_timeout 5s;
+    proxy_read_timeout 15s;
+    proxy_request_buffering on;
+
+    location = /health {
+        limit_except GET { deny all; }
+        proxy_pass http://127.0.0.1:8788;
+    }
+    location = /v1/board {
+        limit_except GET { deny all; }
+        proxy_pass http://127.0.0.1:8788;
+    }
+    location / { return 404; }
+}
