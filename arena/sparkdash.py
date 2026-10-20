@@ -34,7 +34,9 @@ def fetch_history(base, token=""):
         headers["Authorization"] = "Bearer " + token
     req = urllib.request.Request(endpoint(base), headers=headers)
     try:
-        with urllib.request.build_opener(NoRedirect()).open(req, timeout=25) as response:
+        # A local reporter connects directly. System proxies must not receive private
+        # endpoint credentials or make an otherwise reachable private source fail.
+        with urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect()).open(req, timeout=25) as response:
             raw = response.read(MAX_BYTES + 1)
         if len(raw) > MAX_BYTES:
             raise ValueError("sparkDash history is too large")

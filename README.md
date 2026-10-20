@@ -47,7 +47,7 @@ python3 -m arena.client install-schedule
 - sparkDash 的小时历史保留 **72 小时**。允许用 `run --date YYYY-MM-DD` 手动补报仍在小时保留期内的完整自然日；过期则拒绝，不用 UTC 日累计冒充北京时间历史。
 - Linux 用户 timer 默认依赖用户管理器在线；若打算登出后继续，管理员可按本机政策配置 `loginctl enable-linger`。本项目不自动改系统账户政策。
 - Windows：用任务计划程序每小时运行 `python -m arena.client run`，起始目录设为仓库路径。使用执行任务的同一账户运行 `gh auth login` 和报名命令。Windows 没有自动安装计划任务。
-- `SPARKDASH_TOKEN` 环境变量和 `connect --token-file /path/to/private-token` 可替代默认本地令牌文件。计划任务不继承交互 shell 的临时环境变量；推荐 `token` 命令或专用受限文件。POSIX 下令牌文件必须为 `0600`。
+- `SPARKDASH_TOKEN` 环境变量和 `connect --token-file /path/to/private-token` 可替代默认本地令牌文件。也可用 `--token-env-file /path/to/existing.env` 直接复用现有部署文件中的 `SPARKDASH_TOKEN` / `DASHBOARD_TOKEN`；只解析字面值，不执行脚本、不展开变量、不复制密钥。计划任务不继承交互 shell 的临时环境变量；推荐私有文件。POSIX 下凭据文件必须为 `0600`。
 - 平台收到上报后触发 Actions，通常几分钟内更新；额外每小时重建一次。GitHub 排队、配额、服务异常可能造成延迟。页面显示最后成功构建时间。
 
 ### 暂停和退出
@@ -71,7 +71,7 @@ systemctl --user disable --now spark-arena.timer
 
 ## 统计口径
 
-接口：`GET /api/llm-token-totals/history`，`Authorization: Bearer …`（如果启用了认证）。支持反向代理路径前缀，也接受以 `/tokens` 结束的 UI 链接。请求拒绝重定向，避免把令牌带往其他地址。私有地址只由参加者本机访问；请在可信内网 / VPN 使用 HTTP，公网使用 HTTPS。
+接口：`GET /api/llm-token-totals/history`，`Authorization: Bearer …`（如果启用了认证）。支持反向代理路径前缀，也接受以 `/tokens` 结束的 UI 链接。请求直接连接、不经过系统代理，并拒绝重定向，避免把令牌带往其他地址。私有地址只由参加者本机访问；请在可信内网 / VPN 使用 HTTP，公网使用 HTTPS。
 
 我们研究并对齐了 [sparkDash 源码 be35be9](https://github.com/MiaAI-Lab/sparkDash/blob/be35be9f594c65a3324f1d97ace58668d3a22068/server/llmtokens/LlmTokenLedger.js) 的实际响应结构：
 

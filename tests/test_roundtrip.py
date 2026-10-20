@@ -67,7 +67,7 @@ class RoundtripTest(unittest.TestCase):
                     patch.object(client.github,'write_issue',side_effect=write),patch.object(client.github,'set_state',side_effect=state), \
                     patch.dict('os.environ',{'SPARKDASH_TOKEN':'synthetic-fixture-secret'}):
                 url=f'http://127.0.0.1:{server.server_port}'
-                client.connect(argparse.Namespace(repo='owner/repo',name='虚构测试者',url=url,consent_public=True,token_file=None))
+                client.connect(argparse.Namespace(repo='owner/repo',name='虚构测试者',url=url,consent_public=True,token_file=None,token_env_file=None))
                 self.assertEqual(len(stored),1)
                 args=argparse.Namespace(date=day.isoformat(),preview=True)
                 client.run(args);self.assertEqual(len(stored),1)

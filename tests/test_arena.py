@@ -1,12 +1,16 @@
 import datetime as dt
 import json
+import os
+import pathlib
+import tempfile
 import unittest
 from unittest.mock import patch
 
 from arena.build import compile_board
 from arena.core import TZ, issue_body, parse_body, validate
 from arena.sparkdash import endpoint, summarize
-from arena.client import owned, run
+from arena.client import credential, owned, run
+from arena.sparkdash import fetch_history
 
 NOW = dt.datetime(2026, 10, 20, 0, 20, tzinfo=TZ)
 DAY = dt.date(2026, 10, 19)
@@ -77,6 +81,23 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(endpoint("https://example.com/prefix/tokens"),"https://example.com/prefix/api/llm-token-totals/history")
         for url in ("file:///etc/passwd","https://user:pass@example.com","https://example.com/?token=secret"):
             with self.assertRaises(ValueError): endpoint(url)
+
+    def test_existing_private_env_is_read_literally_without_execution(self):
+        with tempfile.TemporaryDirectory() as tmp,patch.dict(os.environ,{'SPARKDASH_TOKEN':''}):
+            path=pathlib.Path(tmp)/'existing.env'
+            path.write_text("OTHER=ignored\nexport DASHBOARD_TOKEN=fallback\nSPARKDASH_TOKEN='$(do-not-execute)#literal'\n")
+            path.chmod(0o600)
+            self.assertEqual(credential({'token_env_file':str(path)}),'$(do-not-execute)#literal')
+            if os.name != 'nt':
+                path.chmod(0o644)
+                with self.assertRaises(ValueError): credential({'token_env_file':str(path)})
+
+    def test_sparkdash_requests_explicitly_disable_system_proxies(self):
+        with patch('arena.sparkdash.urllib.request.build_opener') as build:
+            build.return_value.open.return_value.__enter__.return_value.read.return_value=b'{}'
+            self.assertEqual(fetch_history('http://example.test'),{})
+            proxy=build.call_args.args[0]
+            self.assertEqual(proxy.proxies,{})
 
 
 class BoardTests(unittest.TestCase):

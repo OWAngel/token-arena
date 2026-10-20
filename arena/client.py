@@ -6,6 +6,7 @@ import json
 import os
 import pathlib
 import plistlib
+import shlex
 import shutil
 import subprocess
 import sys
@@ -39,6 +40,23 @@ def credential(config):
     value = os.environ.get("SPARKDASH_TOKEN", "").strip()
     if value:
         return value
+    if config.get("token_env_file"):
+        path = pathlib.Path(config["token_env_file"]).expanduser()
+        if os.name != "nt" and path.stat().st_mode & 0o077:
+            raise ValueError("Credential environment file must be private: chmod 600 <env-file>")
+        found = {}
+        for line in path.read_text(encoding="utf-8").splitlines():
+            key, separator, raw = line.partition("=")
+            key = key.strip().removeprefix("export ").strip()
+            if separator and key in ("SPARKDASH_TOKEN", "DASHBOARD_TOKEN"):
+                try:
+                    values = shlex.split(raw, comments=True)
+                except ValueError:
+                    raise ValueError("Malformed credential assignment in local environment file") from None
+                if len(values) > 1:
+                    raise ValueError("Quote credential values containing whitespace")
+                found[key] = values[0] if values else ""
+        return found.get("SPARKDASH_TOKEN") or found.get("DASHBOARD_TOKEN") or ""
     path = pathlib.Path(config.get("token_file", str(CONFIG_DIR / "sparkdash.token"))).expanduser()
     if path.exists():
         if os.name != "nt" and path.stat().st_mode & 0o077:
@@ -73,6 +91,8 @@ def connect(args):
     endpoint(args.url)
     if args.token_file:
         config["token_file"] = str(pathlib.Path(args.token_file).expanduser().resolve())
+    if args.token_env_file:
+        config["token_env_file"] = str(pathlib.Path(args.token_env_file).expanduser().resolve())
     # Validate connectivity and the actual wire contract before opening a public enrollment.
     history = fetch_history(config["url"], credential(config))
     preview = summarize(history, today() - dt.timedelta(days=1))
@@ -200,7 +220,9 @@ def main():
     p.add_argument("--name", required=True, help="Public WeChat display nickname, not WeChat ID")
     p.add_argument("--url", required=True, help="Local/private sparkDash base URL")
     p.add_argument("--repo", default="OWAngel/token-arena")
-    p.add_argument("--token-file")
+    auth = p.add_mutually_exclusive_group()
+    auth.add_argument("--token-file")
+    auth.add_argument("--token-env-file", help="Read existing private .env literally; never execute it or copy its credentials")
     p.add_argument("--consent-public", action="store_true")
     p.set_defaults(func=connect)
     p = sub.add_parser("run", help="Upload yesterday, or preview without publishing")
