@@ -1,0 +1,6 @@
+{
+  "pages": ["pages/board/index", "pages/me/index", "pages/privacy/index"],
+  "window": {"navigationBarTitleText":"Spark Arena","navigationBarBackgroundColor":"#f5f5f0","navigationBarTextStyle":"black","backgroundColor":"#f5f5f0"},
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

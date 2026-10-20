@@ -1,0 +1,10 @@
+{
+  "description": "Spark Arena 独立微信小程序；注册新 AppID 后替换 touristappid",
+  "appid": "touristappid",
+  "projectname": "spark-arena",
+  "compileType": "miniprogram",
+  "miniprogramRoot": "./",
+  "libVersion": "latest",
+  "setting": { "es6": true, "minified": true, "urlCheck": true },
+  "packOptions": { "ignore": [{"type":"file","value":"README.md"},{"type":"file","value":"package.json"}] }
+}

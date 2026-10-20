@@ -1,0 +1,25 @@
+[Unit]
+Description=Spark Arena independent WeChat API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=spark-arena
+Group=spark-arena
+WorkingDirectory=/opt/spark-arena
+EnvironmentFile=/etc/spark-arena/wechat.env
+StateDirectory=spark-arena-wechat
+StateDirectoryMode=0700
+UMask=0077
+ExecStart=/usr/bin/python3 -m arena.wechat_server
+Restart=on-failure
+RestartSec=10
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/spark-arena-wechat
+
+[Install]
+WantedBy=multi-user.target

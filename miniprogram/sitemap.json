@@ -1,0 +1,1 @@
+{"desc":"仅公开榜单页面可被索引，个人资料与绑定页不可索引","rules":[{"action":"allow","page":"pages/board/index"},{"action":"disallow","page":"*"}]}
