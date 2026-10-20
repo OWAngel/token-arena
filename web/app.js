@@ -68,9 +68,9 @@ function toggleDemo(force){
 }
 function joinCommand(){
   const name=$('join-name').value.trim(),url=$('join-url').value.trim();let valid=false;
-  try{const p=new URL(url);valid=!!name&&name.length<=40&&!/[\x00-\x1f\x7f-\x9f]/.test(name+url)&&['http:','https:'].includes(p.protocol)&&!p.username&&!p.password&&!p.search&&!p.hash&&$('consent').checked;}catch{/* Incomplete local form; no request is made. */}
+  try{const p=new URL(url);valid=!!name&&name.length<=40&&!/[\x00-\x1f\x7f-\x9f]/.test(name+url)&&['http:','https:'].includes(p.protocol)&&!p.username&&!p.password&&!p.search&&!p.hash;}catch{/* Incomplete local form; no request is made. */}
   $('copy-command').disabled=!valid;
-  $('join-command').textContent=valid?connectionCommand(name,url,data.repo):'填写有效的昵称、http(s) 地址并勾选同意后生成命令。';$('copy-status').textContent='';
+  $('join-command').textContent=valid?connectionCommand(name,url,data.repo):'填写有效的昵称和 http(s) 地址后生成加入命令。';$('copy-status').textContent='';
 }
 $('date').value=view.day;$('date').max=yesterday();$('date').min='2026-01-01';
 document.querySelectorAll('[data-days]').forEach(button=>button.addEventListener('click',()=>{view.days=Number(button.dataset.days);document.querySelectorAll('[data-days]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));render();}));
@@ -81,7 +81,7 @@ $('date').addEventListener('change',e=>{if(e.target.validity.valid&&e.target.val
 $('demo-toggle').addEventListener('click',()=>toggleDemo());$('exit-demo').addEventListener('click',()=>toggleDemo(false));
 document.querySelectorAll('.join-trigger').forEach(button=>button.addEventListener('click',()=>$('join-dialog').showModal()));
 document.querySelector('.close-dialog').addEventListener('click',()=>$('join-dialog').close());
-for(const id of ['join-name','join-url','consent'])$(id).addEventListener('input',joinCommand);
+for(const id of ['join-name','join-url'])$(id).addEventListener('input',joinCommand);
 $('copy-command').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('join-command').textContent);$('copy-status').textContent='已复制到剪贴板';}catch{$('copy-status').textContent='请选中命令并手动复制';}});
 $('export').addEventListener('click',()=>{
   const rows=[['mode','end_date','days','wechat_name','github','model','input_tokens','output_tokens','cached_input_tokens','total_tokens','reported_days']];

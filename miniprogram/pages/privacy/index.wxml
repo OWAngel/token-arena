@@ -1,0 +1,7 @@
+<view class="page"><view class="title">自愿公开，由你决定</view>
+<view class="card"><view class="section-title">我们识别账号，不验证实名</view><view class="muted">微信登录返回的账号标识只用于后台建立身份。榜单只显示你确认的昵称和本平台专用的公开身份标识，不显示 OpenID、UnionID、手机号或微信号。昵称可以修改、可以重名，不等于实名认证。</view></view>
+<view class="card"><view class="section-title">只上传最小汇总</view><view class="muted">在你自愿参加并绑定设备后，本地上报器只上传日期、模型、输入、输出、缓存 Token 和覆盖标记。不上传 sparkDash 地址、访问令牌、节点、硬件、提示词、会话内容或完整原始响应。</view></view>
+<view class="card"><view class="section-title">分享的是实例整体</view><view class="muted">连接前须确认你有权公开这个实例的整体统计。共享实例的用量不能解释为某个自然人的个人消耗。计数可能因监控中断而缺失；缓存包含在输入里，不重复相加。</view></view>
+<view class="card"><view class="section-title">授权可以撤销</view><view class="muted">在“我的 Spark”中撤销设备会停止后续上报；退出公开榜单会隐藏自己的微信榜单历史并撤销设备。公开信息可能已被他人复制，无法保证删除所有副本。微信版和 GitHub 网页版是两个独立报名渠道，退出微信榜单不会关闭原先自愿发布的 GitHub Issue。</view></view>
+<view class="card"><view class="section-title">登录联调与联系</view><view class="muted">当前仅开放微信登录联调。服务端将微信登录凭证交换为账号标识，再生成本平台专用的身份标识和24小时会话，用于识别同一账号；登录不自动报名，也不公开账号记录。正式运营主体与完整隐私指引将在发布前补齐，当前不接受报名或设备绑定。隐私联系邮箱：14299765@qq.com。</view></view>
+</view>

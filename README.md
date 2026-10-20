@@ -2,7 +2,18 @@
 
 **自愿连接自己的 sparkDash，分享昨天的模型与 Token 用量。**
 
-🌐 **[打开互动榜单](https://OWAngel.github.io/token-arena/)** · [报名与上报记录](https://github.com/OWAngel/token-arena/issues) · [公开数据说明](PRIVACY.md)
+🌐 **[打开无需账号的 Spark Arena](https://arena.miratap.cc/)** · [网页版加入说明](platform/README.md) · [旧 GitHub 渠道榜单](https://OWAngel.github.io/token-arena/)
+
+## 无需 GitHub / 微信账号加入（推荐）
+
+打开 [arena.miratap.cc](https://arena.miratap.cc/)，点击「连接我的 sparkDash」，填写昵称和自己的 sparkDash 地址，再点击「加入并生成绑定码」。无需额外勾选或第三方登录。
+
+在能访问自己 sparkDash 的电脑上执行网页生成的命令，并在隐藏提示中粘贴绑定码。平台直接提供上报器下载，不依赖 GitHub CLI、Git 或参加者的 GitHub 账户。首次绑定后安装 macOS / Linux 定时任务，按北京时间上报前一天的模型与 Token 汇总；Windows 需手动配置任务计划程序。
+
+地址和 sparkDash 令牌只留在本机。管理密钥用于改昵称、撤销设备和退出榜单，请下载备份；昵称不是微信实名认证。操作与部署细节见 [platform/README.md](platform/README.md)，公开说明见 [平台隐私页](https://arena.miratap.cc/privacy.html)。
+
+下文保留旧 GitHub 渠道用法，它与独立平台的身份和数据分开；现有参加者不会被自动迁移或重复上报。
+
 
 日榜 / 7 天 / 30 天、微信昵称搜索、模型筛选、输入 / 输出排名、模型明细、趋势和 CSV 导出。真实榜单默认空白；页面可切换明确标注的虚构演示。
 
@@ -36,7 +47,7 @@ python3 -m arena.client run            # 首次上报
 python3 -m arena.client install-schedule
 ```
 
-也可以在网站右上角点「连接我的 sparkDash」，生成适合自己的命令。GitHub 登录是报名身份，不需要给其他参加者仓库写权限。
+也可以在网站右上角点「连接我的 sparkDash」，填写昵称和地址即可生成加入命令，无需额外勾选。执行命令才会报名，仅打开页面或填写不会加入。GitHub 登录是报名身份，不需要给其他参加者仓库写权限。
 
 `connect` 会先测试私有连接和小时历史接口，再创建公开报名 Issue。不会自动把这台电脑的其他 AI 工具或其他设备加入。它只读取 sparkDash 的 GET 接口；不会清空计数、修改配置或控制模型。
 

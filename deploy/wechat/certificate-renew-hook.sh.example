@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+# Install as an executable certbot deploy hook for this certificate only.
+if [ "${RENEWED_LINEAGE:-}" = /etc/letsencrypt/live/spark-arena ]; then
+    /usr/sbin/nginx -t
+    /usr/bin/systemctl reload nginx
+fi
