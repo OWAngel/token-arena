@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, m3-linux]
     permissions:
       contents: read
       issues: read
@@ -40,7 +40,7 @@ jobs:
           path: dist
   deploy:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, m3-linux]
     permissions:
       pages: write
       id-token: write
