@@ -5,7 +5,7 @@ permissions:
   contents: read
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, m3-linux]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
